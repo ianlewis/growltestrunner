@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 import unittest
 
-from testrunner import GrowlTestRunner
+from testrunner import NotifyTestRunner
 
 class DemoTest(unittest.TestCase):
     """
@@ -18,4 +18,4 @@ class DemoTest(unittest.TestCase):
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(DemoTest)
-    GrowlTestRunner().run(suite)
+    NotifyTestRunner().run(suite)

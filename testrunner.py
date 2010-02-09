@@ -5,16 +5,17 @@ import time
 import unittest
 from datetime import datetime
 
-class GrowlTestRunner(unittest.TextTestRunner):
+APP_NAME = "Growl Text Test Runner"
+
+class BaseTestRunner(unittest.TextTestRunner):
     """Text test runner with growl
     Need to installed growlnotiry.
 
     USAGE: pyautotest -r growltestrunner.GrowlTestRunner
     """
     def __init__(self, *args, **kwargs):
-        self.growl_app_name = "Growl Text Test Runner"
         self.stikey = False
-        super(GrowlTestRunner, self).__init__(*args, **kwargs)
+        super(BaseTestRunner, self).__init__(*args, **kwargs)
         
     def run(self, test):
         "Run the given test case or test suite."
@@ -53,20 +54,42 @@ class GrowlTestRunner(unittest.TextTestRunner):
             icon = "icon_ok.png"
             priority = -2
             self.stream.writeln("OK")
-        self.growl(title, message + result_line, priority, icon, sticky)
+        self.notify(title, message + result_line, priority, icon, sticky)
         return result
 
-    def growl(self, title, message, priority, icon, sticky=False):
-        """Growl message via growlnotify
+    def notify(self, title, message, priority, icon, sticky=False):
+        pass
+try:
+    import pynotify
+    pynotify.init(APP_NAME)
+    
+    class NotifyTestRunner(BaseTestRunner):
         """
-        base_dir = os.path.abspath(os.path.dirname(__file__))
-        fmt = 'growlnotify -n "%(app_name)s" -p %(priority)s '\
-            '--image="%(icon_path)s" -m "%(message)s" "%(title)s" %(sticky)s'
-        dic = {"app_name": self.growl_app_name,
-               "title": title,
-               "message": "%s\n%s" % (message, datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
-               "priority": priority,
-               "icon_path": os.path.join(base_dir, icon),
-               "sticky": "-s" if sticky else ""
-               }
-        os.system(fmt % dic)
+        Notifications using pynotify
+        """
+        def notify(self, title, message, priority, icon, sticky=False):
+            base_dir = os.path.abspath(os.path.dirname(__file__))
+            n = pynotify.Notification(
+                summary=title,
+                message=message,
+                icon=os.path.join(base_dir, icon),
+            )
+
+except ImportError:
+
+    class NotifyTestRunner(BaseTestRunner):
+        def notify(self, title, message, priority, icon, sticky=False):
+            """
+            Growl message via growlnotify
+            """
+            base_dir = os.path.abspath(os.path.dirname(__file__))
+            fmt = 'growlnotify -n "%(app_name)s" -p %(priority)s '\
+                '--image="%(icon_path)s" -m "%(message)s" "%(title)s" %(sticky)s'
+            dic = {"app_name": APP_NAME,
+                   "title": title,
+                   "message": "%s\n%s" % (message, datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+                   "priority": priority,
+                   "icon_path": os.path.join(base_dir, icon),
+                   "sticky": "-s" if sticky else ""
+                   }
+            os.system(fmt % dic)
