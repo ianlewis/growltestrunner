@@ -77,19 +77,37 @@ try:
 
 except ImportError:
 
-    class NotifyTestRunner(BaseTestRunner):
-        def notify(self, title, message, priority, icon, sticky=False):
+    try:
+        import PySnarl
+
+        class NotifyTestRunner(BaseTestRunner):
             """
-            Growl message via growlnotify
+            Notifications using pynotify
             """
-            base_dir = os.path.abspath(os.path.dirname(__file__))
-            fmt = 'growlnotify -n "%(app_name)s" -p %(priority)s '\
-                '--image="%(icon_path)s" -m "%(message)s" "%(title)s" %(sticky)s'
-            dic = {"app_name": APP_NAME,
-                   "title": title,
-                   "message": "%s\n%s" % (message, datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
-                   "priority": priority,
-                   "icon_path": os.path.join(base_dir, icon),
-                   "sticky": "-s" if sticky else ""
-                   }
-            os.system(fmt % dic)
+            def notify(self, title, message, priority, icon, sticky=False):
+                base_dir = os.path.abspath(os.path.dirname(__file__))
+                n = PySnarl.SnarlMessage(
+                    title=title,
+                    text=message,
+                    icon=os.path.join(base_dir, icon),
+                )
+                n.send()
+                n.setTimeout(timeout=3)
+    except ImportError:
+
+        class NotifyTestRunner(BaseTestRunner):
+            def notify(self, title, message, priority, icon, sticky=False):
+                """
+                Growl message via growlnotify
+                """
+                base_dir = os.path.abspath(os.path.dirname(__file__))
+                fmt = 'growlnotify -n "%(app_name)s" -p %(priority)s '\
+                    '--image="%(icon_path)s" -m "%(message)s" "%(title)s" %(sticky)s'
+                dic = {"app_name": APP_NAME,
+                       "title": title,
+                       "message": "%s\n%s" % (message, datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+                       "priority": priority,
+                       "icon_path": os.path.join(base_dir, icon),
+                       "sticky": "-s" if sticky else ""
+                       }
+                os.system(fmt % dic)
