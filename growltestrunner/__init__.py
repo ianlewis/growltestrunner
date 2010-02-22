@@ -77,15 +77,15 @@ class PynotifyTestRunner(BaseTestRunner):
     """
     def __init__(self, *args, **kwargs):
         super(PynotifyTestRunner, self).__init__(*args, **kwargs)
-        pynotify.init(self.app_name)
+        pynotify.init(self.APP_NAME)
         
     def notify(self, title, message, priority, icon, sticky=False):
         base_dir = os.path.abspath(os.path.dirname(__file__))
-        n = pynotify.Notification(
+        pynotify.Notification(
             summary=title,
             message=message,
             icon=os.path.join(base_dir, icon),
-            )
+        ).show()
 
 
 class SnarlTestRunner(BaseTestRunner):
